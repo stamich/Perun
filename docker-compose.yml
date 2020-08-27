@@ -1,0 +1,55 @@
+version: '3'
+services:
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=127.0.0.1
+      - KAFKA_ADVERTISED_PORT=9092
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+    depends_on:
+      - zookeeper
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=zookeeper
+
+  postgres-db:
+    container_name: 'perun_main'
+    build: ./docker/postgress
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - checklist_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: perun_main
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+
+  cap-adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 18000:8080
+
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '6379:6379'
+
+  activeMQ:
+    image: webcenter/activemq:latest
+    ports:
+      - '61616:61616'
+
+volumes:
+  checklist_postgres_data:
+    external: false
